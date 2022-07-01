@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  go-server:
+    build:
+      context: go
+      dockerfile: ../../go/Dockerfile
+    image: ${GO_IMAGE:-kaestner/dockerfiles:go}
+    ports:
+      - "8000:8080"
+  java-server:
+    build:
+      context: java
+      dockerfile: ../../java/Dockerfile
+    image: ${JAVA_IMAGE:-kaestner/dockerfiles:java}
+    platform: linux/amd64
+    ports:
+      - "8001:8080"
