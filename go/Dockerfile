@@ -1,12 +1,13 @@
-ARG GO_VERSION=1.18
-ARG ALPINE_VERSION=3.16
+ARG GO_VERSION=1.22
+ARG ALPINE_VERSION=3.20
 
 FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build
 
 ARG TARGETOS 
 ARG TARGETARCH
 
-ENV CGO_ENABLED=0
+# If CGO is required
+# RUN apk add --no-cache build-base
 
 # Switch into workspace
 WORKDIR /workspace
@@ -20,8 +21,9 @@ RUN go mod download
 # Copy the local package files to the container's workspace
 COPY . .
 
-# Build the application
-RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o build/server .
+# Build the application into a static executable while removing the symbol table and debugging information
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o build/server .
+# RUN CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o build/server -ldflags "-s -w -linkmode 'external' -extldflags '-static'" .
 
 FROM gcr.io/distroless/static:nonroot
 
